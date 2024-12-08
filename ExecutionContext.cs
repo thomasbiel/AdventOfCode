@@ -29,10 +29,8 @@ public static class ExecutionContext
             ? ExecutionMode.Default
             : ExecutionMode.Debug;
         
-        var days = args.FirstOrDefault(a => a.StartsWith(DaysArgPrefix, StringComparison.OrdinalIgnoreCase));
-        Days = ReadNumbers(days, DaysArgPrefix);
-        var years = args.FirstOrDefault(a => a.StartsWith(DaysArgPrefix, StringComparison.OrdinalIgnoreCase));
-        Years = ReadNumbers(years, YearsArgPrefix);
+        Days = ReadNumbers(args, DaysArgPrefix);
+        Years = ReadNumbers(args, YearsArgPrefix);
 
         if (File.Exists(SettingsFileName))
         {
@@ -50,8 +48,9 @@ public static class ExecutionContext
         }
     }
 
-    private static HashSet<int> ReadNumbers(string arg, string prefix)
+    private static HashSet<int> ReadNumbers(string[] args, string prefix)
     {
+        var arg = args.FirstOrDefault(a => a.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
         var value = arg?[prefix.Length..];
         return value?.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
             .Select(s => int.TryParse(s, out var d) ? d : UnparsedNumber)

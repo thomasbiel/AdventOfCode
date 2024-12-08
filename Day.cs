@@ -28,18 +28,18 @@ public abstract class Day : IDay
         }
     }
     
-    protected string[] GetInputLines()
+    protected string[] GetInputLines(int? part = null)
     {
         return ExecutionContext.Mode == ExecutionMode.Default
             ? GetInput(File.ReadAllLines)
-            : GetTestInput().Split("\n", StringSplitOptions.TrimEntries);
+            : GetTestInput(part).Split("\n", StringSplitOptions.TrimEntries);
     }
 
-    protected string GetInput()
+    protected string GetInput(int? part = null)
     {
         return ExecutionContext.Mode == ExecutionMode.Default
             ? GetInput(File.ReadAllText)
-            : GetTestInput();
+            : GetTestInput(part);
     }
 
     private T GetInput<T>(Func<string, T> factory)
