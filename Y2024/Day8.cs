@@ -4,8 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace AdventOfCode.Y2024;
 
-[Year(2024)]
-public class Day8 : Day<int>
+public class Day8 : Day
 {
     private record Point(int Column, int Row);
 
@@ -38,45 +37,29 @@ public class Day8 : Day<int>
 
     public Day8()
     {
-        var lines = this.GetInputLines();
-        
-        this.maxColumn = lines[0].Length - 1;
-        this.maxRow = lines.Length - 1;
-        
         var regex = new Regex("[a-zA-Z0-9]");
         var set = new HashSet<Antenna>();
-        for (var i = 0; i < lines.Length; i++)
+        var i = 0;
+        foreach (var line in this.GetInputLines())
         {
-            foreach (Match m in regex.Matches(lines[i]))
+            if (i == 0) this.maxColumn = line.Length - 1;
+            foreach (Match m in regex.Matches(line))
             {
                 set.Add(new Antenna(m.Value[0], m.Index, i));
             }
+
+            i++;
         }
 
+        this.maxRow = i - 1; 
         this.antennas = set;
     }
 
-    public override int SolvePartOne() => GetAntinodeCount(includeResonances: false);
+    [ExpectedResult(14, 259)]
+    public override object SolvePartOne() => this.GetAntinodeCount(includeResonances: false);
 
-    public override int SolvePartTwo() => GetAntinodeCount(includeResonances: true);
-
-    protected override string GetTestInput(int? part = null)
-    {
-        return """
-               ............
-               ........0...
-               .....0......
-               .......0....
-               ....0.......
-               ......A.....
-               ............
-               ............
-               ........A...
-               .........A..
-               ............
-               ............
-               """;
-    }
+    [ExpectedResult(34, 927)]
+    public override object SolvePartTwo() => this.GetAntinodeCount(includeResonances: true);
     
     private int GetAntinodeCount(bool includeResonances)
     {
@@ -107,5 +90,23 @@ public class Day8 : Day<int>
         }
         
         return set.Count;
+    }
+
+    protected override string GetTestInput(int? part = null)
+    {
+        return """
+               ............
+               ........0...
+               .....0......
+               .......0....
+               ....0.......
+               ......A.....
+               ............
+               ............
+               ........A...
+               .........A..
+               ............
+               ............
+               """;
     }
 }

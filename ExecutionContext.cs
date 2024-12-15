@@ -64,9 +64,11 @@ public static class ExecutionContext
     
     public static bool DayIsSelected(int day) => Days == null || Days.Count == 0 || Days.Contains(day);
     
-    public static T LoadInput<T>(int year, int day, Func<string, T> factory)
+    public static T LoadInput<T>(Day day, Func<string, T> factory)
     {
-        var path = Path.Combine(InputCacheFolder, $"{year}\\Day{day}.txt");
+        var dayOfYear = new DayOfYear(day.GetType());
+        
+        var path = Path.Combine(InputCacheFolder, $"{dayOfYear.Year}\\Day{dayOfYear.DayOfMonth}.txt");
         if (!File.Exists(path))
         {
             if (string.IsNullOrEmpty(SessionCookie))
@@ -74,7 +76,7 @@ public static class ExecutionContext
                 throw new InvalidCredentialException("No session cookie provided for download.");
             }
 
-            var data = DownloadFile(year, day).Result;
+            var data = DownloadFile(dayOfYear.Year, dayOfYear.DayOfMonth).Result;
             File.WriteAllBytes(path, data);
         }
 
@@ -83,7 +85,7 @@ public static class ExecutionContext
 
     private static async Task<byte[]> DownloadFile(int year, int day)
     {
-        var url = new Uri($"https://adventofcode.com/{year}/day/{day}/input");
+        var url = new Uri("https://adventofcode.com");
         
         var cookieContainer = new CookieContainer();
         using var handler = new HttpClientHandler();

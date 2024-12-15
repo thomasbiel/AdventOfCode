@@ -1,20 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace AdventOfCode;
 
-public abstract class Day<T> : IDay
+public abstract class Day
 {
     protected const int PartOne = 1;
     protected const int PartTwo = 2;
 
-    object IDay.SolvePartOne() => this.SolvePartOne();
+    public abstract object SolvePartOne();
     
-    object IDay.SolvePartTwo() => this.SolvePartTwo();
-    
-    public abstract T SolvePartOne();
-    
-    public abstract T SolvePartTwo();
+    public abstract object SolvePartTwo();
     
     protected abstract string GetTestInput(int? part = null);
 
@@ -28,25 +25,28 @@ public abstract class Day<T> : IDay
         }
     }
     
-    protected string[] GetInputLines(int? part = null)
+    protected IEnumerable<string> GetInputLines(int? part = null)
     {
         return ExecutionContext.Mode == ExecutionMode.Default
-            ? GetInput(File.ReadAllLines)
-            : GetTestInput(part).Split("\n", StringSplitOptions.TrimEntries);
+            ? this.GetInput(ReadAllLines)
+            : this.GetTestInput(part).Split("\n", StringSplitOptions.TrimEntries);
     }
 
     protected string GetInput(int? part = null)
     {
         return ExecutionContext.Mode == ExecutionMode.Default
-            ? GetInput(File.ReadAllText)
-            : GetTestInput(part);
+            ? this.GetInput(File.ReadAllText)
+            : this.GetTestInput(part);
     }
 
-    private TResult GetInput<TResult>(Func<string, TResult> factory)
+    private TResult GetInput<TResult>(Func<string, TResult> factory) => ExecutionContext.LoadInput(this, factory);
+
+    private static IEnumerable<string> ReadAllLines(string path)
     {
-        var type = this.GetType();
-        var year = YearAttribute.GetYear(type);
-        var day = DayOfYear.GetNumber(type);
-        return ExecutionContext.LoadInput(year, day, factory);
+        var reader = new StreamReader(path);
+        while (reader.ReadLine() is { } line)
+        {
+            yield return line;
+        }
     }
 }

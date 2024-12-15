@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 
 namespace AdventOfCode.Utilities;
@@ -108,5 +109,29 @@ public static class NumericExtensions
         }
 
         return digits;
+    }
+    
+    public static long GetLeastCommonMultiple(this long a, long b)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(a);
+        ArgumentOutOfRangeException.ThrowIfNegative(b);
+        
+        if (a == 0 || b == 0) return 0;
+        return a * b / a.GetGreatestCommonDivisor(b);
+    }
+
+    public static long GetGreatestCommonDivisor(this long a, long b)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(a);
+        ArgumentOutOfRangeException.ThrowIfNegative(b);
+        
+        while (b != 0)
+        {
+            var temp = b;
+            b = a % b;
+            a = temp;
+        }
+        
+        return a;
     }
 }

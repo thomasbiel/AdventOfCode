@@ -4,11 +4,14 @@ using System.Linq;
 
 namespace AdventOfCode.Y2024;
 
-[Year(2024)]
-public class Day2 : Day<int>
+public class Day2 : Day
 {
-    public override int SolvePartOne() => Solve(PartOne);
+    [ExpectedResult(2, 631)]
+    public override object SolvePartOne() => this.Solve(PartOne);
 
+    [ExpectedResult(4, 665)]
+    public override object SolvePartTwo() => this.Solve(PartTwo);
+    
     private int Solve(int part)
     {
         var lines = this.GetInputLines();
@@ -78,8 +81,6 @@ public class Day2 : Day<int>
 
         return isSafe;
     }
-
-    public override int SolvePartTwo() => Solve(PartTwo);
 
     protected override string GetTestInput(int? part = null)
     {

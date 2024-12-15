@@ -5,8 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace AdventOfCode.Y2024;
 
-[Year(2024)]
-public class Day4 : Day<int>
+public class Day4 : Day
 {
     private static readonly int SearchLength = "XMAS".Length;
     private static readonly string Pattern = "(?=(XMAS|SAMX))";
@@ -16,11 +15,12 @@ public class Day4 : Day<int>
 
     public Day4()
     {
-        this.lines = this.GetInputLines();
+        this.lines = this.GetInputLines().ToArray();
         this.lineLength = this.lines[0].Length;
     }
 
-    public override int SolvePartOne()
+    [ExpectedResult(18, 2390)]
+    public override object SolvePartOne()
     {
         var count = this.Count();
         count += this.CountColumns();
@@ -28,21 +28,36 @@ public class Day4 : Day<int>
         count += this.CountAntiDiagonals();
         return count;
     }
-
-    protected override string GetTestInput(int? part = null)
+    
+    [ExpectedResult(9, 1809)]
+    public override object SolvePartTwo()
     {
-        return """
-               MMMSXXMASM
-               MSAMXMSMSA
-               AMXSXMAAMM
-               MSAMASMSMX
-               XMASAMXAMM
-               XXAMMXXAMA
-               SMSMSASXSS
-               SAXAMASAAA
-               MAMMMXMMMM
-               MXMXAXMASX
-               """;
+        var pattern = "MAS";
+        var reversed = "SAM";
+
+        var diff = pattern.Length - 1;
+        
+        string Cut(string value) => value[..Math.Min(value.Length, pattern.Length)];
+        
+        var count = 0;
+        for (var column = 0; column < this.lineLength - diff; column++)
+        {
+            for (var line = 0; line < this.LineCount - diff; line++)
+            {
+                var diagonal = Cut(this.GetDiagonal(line, column));
+                var antiDiagonal = Cut(this.GetAntiDiagonal(line, column + diff));
+                
+                if (diagonal == pattern && antiDiagonal == reversed ||
+                    diagonal == reversed && antiDiagonal == pattern ||
+                    diagonal == pattern && antiDiagonal == pattern ||
+                    diagonal == reversed && antiDiagonal == reversed)
+                {
+                    count++;
+                }
+            }
+        }
+
+        return count;
     }
 
     private int CountDiagonals()
@@ -73,7 +88,7 @@ public class Day4 : Day<int>
         var r = line;
         while (r < this.LineCount && i < this.lineLength)
         {
-            sb.Append(lines[r][i]);
+            sb.Append(this.lines[r][i]);
             r++;
             i++;
         }
@@ -89,7 +104,7 @@ public class Day4 : Day<int>
         var r = line;
         while (r < this.LineCount && i >= 0)
         {
-            sb.Append(lines[r][i]);
+            sb.Append(this.lines[r][i]);
             r++;
             i--;
         }
@@ -144,33 +159,19 @@ public class Day4 : Day<int>
 
     private static int Count(string line) => Regex.Count(line, Pattern);
 
-    public override int SolvePartTwo()
+    protected override string GetTestInput(int? part = null)
     {
-        var pattern = "MAS";
-        var reversed = "SAM";
-
-        var diff = pattern.Length - 1;
-        
-        string Cut(string value) => value[..Math.Min(value.Length, pattern.Length)];
-        
-        var count = 0;
-        for (var column = 0; column < this.lineLength - diff; column++)
-        {
-            for (var line = 0; line < this.LineCount - diff; line++)
-            {
-                var diagonal = Cut(this.GetDiagonal(line, column));
-                var antiDiagonal = Cut(this.GetAntiDiagonal(line, column + diff));
-                
-                if (diagonal == pattern && antiDiagonal == reversed ||
-                    diagonal == reversed && antiDiagonal == pattern ||
-                    diagonal == pattern && antiDiagonal == pattern ||
-                    diagonal == reversed && antiDiagonal == reversed)
-                {
-                    count++;
-                }
-            }
-        }
-
-        return count;
+        return """
+               MMMSXXMASM
+               MSAMXMSMSA
+               AMXSXMAAMM
+               MSAMASMSMX
+               XMASAMXAMM
+               XXAMMXXAMA
+               SMSMSASXSS
+               SAXAMASAAA
+               MAMMMXMMMM
+               MXMXAXMASX
+               """;
     }
 }

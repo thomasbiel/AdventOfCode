@@ -5,8 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace AdventOfCode.Y2023;
 
-[Year(2023)]
-public class Day2 : Day<int>
+public class Day2 : Day
 {
     private sealed record CubeSet(int Red, int Green, int Blue)
     {
@@ -56,7 +55,8 @@ public class Day2 : Day<int>
         this.games = list;
     }
     
-    public override int SolvePartOne()
+    [ExpectedResult(8, 3035)]
+    public override object SolvePartOne()
     {
         var result = 0;
         foreach (var game in this.games)
@@ -74,7 +74,8 @@ public class Day2 : Day<int>
         return result;
     }
 
-    public override int SolvePartTwo()
+    [ExpectedResult(2286, 66027)]
+    public override object SolvePartTwo()
     {
         var result = 0;
         foreach (var game in this.games)

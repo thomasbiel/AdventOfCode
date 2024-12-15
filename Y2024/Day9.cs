@@ -4,20 +4,18 @@ using System.Text;
 
 namespace AdventOfCode.Y2024;
 
-[Year(2024)]
-public class Day9 : Day<long>
+public class Day9 : Day
 {
     private sealed record File(int Id, int Pos, int Size);
     
     private readonly Dictionary<int, int> blockToFileId = new();
     private readonly Dictionary<int, File> fileIdToFile = new();
-    private int diskSize;
     
-    private void Initialize()
+    private int GetDiskSize()
     {
         this.blockToFileId.Clear();
         this.fileIdToFile.Clear();
-        var diskMap = this.GetInputLines()[0];
+        var diskMap = this.GetInputLines().First();
         
         var id = 0;
         var isFile = true;
@@ -46,16 +44,17 @@ public class Day9 : Day<long>
             }
         }
 
-        this.diskSize = pos;
+        return pos;
     }
 
-    public override long SolvePartOne()
+    [ExpectedResult(1928L, 6200294120911)]
+    public override object SolvePartOne()
     {
-        this.Initialize();
-        this.DebugDiskMap("Before rearrange: ");
+        var diskSize = this.GetDiskSize();
+        this.DebugDiskMap(diskSize, "Before rearrange: ");
 
-        var lastBlock = this.diskSize - 1;
-        for (var block = 0; block < this.diskSize; block++)
+        var lastBlock = diskSize - 1;
+        for (var block = 0; block < diskSize; block++)
         {
             if (this.blockToFileId.ContainsKey(block))
             {
@@ -73,16 +72,45 @@ public class Day9 : Day<long>
             this.blockToFileId.Add(block, id);
         }
         
-        this.DebugDiskMap("After rearrange:  ");
-        return CalculateChecksum();
+        this.DebugDiskMap(diskSize, "After rearrange:  ");
+        return this.CalculateChecksum(diskSize);
     }
 
-    private void DebugDiskMap(string prefix)
+    [ExpectedResult(2858L, 6227018762750)]
+    public override object SolvePartTwo()
+    {
+        var diskSize = this.GetDiskSize();
+        this.DebugDiskMap(diskSize, "Before rearrange: ");
+
+        var files = this.fileIdToFile
+            .OrderByDescending(e => e.Key)
+            .Where(e => e.Key > 0)
+            .Select(e => e.Value);
+        
+        foreach (var file in files)
+        {
+            var space = this.TryGetPositionOfFreeSpace(file);
+            if (space == null) continue;
+            
+            var moved = file with { Pos = space.Value };
+            this.fileIdToFile[file.Id] = moved; 
+            for (var j = 0; j < file.Size; j++)
+            {
+                this.blockToFileId.Remove(file.Pos + j);
+                this.blockToFileId[space.Value + j] = file.Id;
+            }
+        }
+        
+        this.DebugDiskMap(diskSize, "After rearrange:  ");
+        return this.CalculateChecksum(diskSize);
+    }
+
+    private void DebugDiskMap(int diskSize, string prefix)
     {
         if (ExecutionContext.Mode != ExecutionMode.Debug) return;
         
-        var sb = new StringBuilder(this.diskSize);
-        for (var i = 0; i < this.diskSize; i++)
+        var sb = new StringBuilder(diskSize);
+        for (var i = 0; i < diskSize; i++)
         {
             if (this.blockToFileId.TryGetValue(i, out var file))
             {
@@ -97,10 +125,10 @@ public class Day9 : Day<long>
         this.DebugOut(prefix + sb);
     }
 
-    private long CalculateChecksum()
+    private long CalculateChecksum(int diskSize)
     {
         long checksum = 0;
-        for (var block = 0; block < this.diskSize; block++)
+        for (var block = 0; block < diskSize; block++)
         {
             if (this.blockToFileId.TryGetValue(block, out var id))
             {
@@ -109,34 +137,6 @@ public class Day9 : Day<long>
         }
 
         return checksum;
-    }
-
-    public override long SolvePartTwo()
-    {
-        this.Initialize();
-        this.DebugDiskMap("Before rearrange: ");
-
-        var files = this.fileIdToFile
-            .OrderByDescending(e => e.Key)
-            .Where(e => e.Key > 0)
-            .Select(e => e.Value);
-        
-        foreach (var file in files)
-        {
-            var space = TryGetPositionOfFreeSpace(file);
-            if (space == null) continue;
-            
-            var moved = file with { Pos = space.Value };
-            this.fileIdToFile[file.Id] = moved; 
-            for (var j = 0; j < file.Size; j++)
-            {
-                this.blockToFileId.Remove(file.Pos + j);
-                this.blockToFileId[space.Value + j] = file.Id;
-            }
-        }
-        
-        this.DebugDiskMap("After rearrange:  ");
-        return CalculateChecksum();
     }
 
     private int? TryGetPositionOfFreeSpace(File file)

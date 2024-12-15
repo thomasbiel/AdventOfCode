@@ -5,15 +5,14 @@ using System.Linq;
 
 namespace AdventOfCode.Y2024;
 
-[Year(2024)]
-public class Day5 : Day<int>
+public class Day5 : Day
 {
-    private readonly List<(int, int)> pageOrder = new();
+    private readonly List<(int, int)> pageOrder = [];
     private readonly string[] updates;
     
     public Day5()
     {
-        var lines = this.GetInputLines();
+        var lines = this.GetInputLines().ToArray();
         var separator = Array.IndexOf(lines, string.Empty);
         var lineSpan = lines.AsSpan();
         
@@ -23,16 +22,18 @@ public class Day5 : Day<int>
         foreach (var order in ordering)
         {
             var ids = order.Split('|');
+            
             int Get(int i) => int.Parse(ids[i]);
             
             this.pageOrder.Add((Get(0), Get(1)));
         }
     }
     
-    public override int SolvePartOne()
+    [ExpectedResult(143, 4578)]
+    public override object SolvePartOne()
     {
         var sum = 0;
-        foreach (var line in updates)
+        foreach (var line in this.updates)
         {
             var pages = line.Split(',').Select(int.Parse).ToArray();
             if (this.UpdateIsValid(pages))
@@ -40,6 +41,29 @@ public class Day5 : Day<int>
                 VerifyUpdatePageCount(pages);
                 var index = (pages.Length + 1) / 2 - 1;
                 sum += pages[index];
+            }
+        }
+        
+        return sum;
+    }
+
+    [ExpectedResult(123, 6179)]
+    public override object SolvePartTwo()
+    {
+        var comparer = new PageComparer(this.pageOrder); 
+        
+        var sum = 0;
+        foreach (var line in this.updates)
+        {
+            var pages = line.Split(',').Select(int.Parse).ToArray();
+            if (!this.UpdateIsValid(pages))
+            {
+                VerifyUpdatePageCount(pages);
+                var ordered = pages.OrderBy(p => p, comparer).ToArray();
+                this.DebugOut($"{ListPages(pages)} => {ListPages(ordered)}");
+                    
+                var index = (ordered.Length + 1) / 2 - 1;
+                sum += ordered[index];
             }
         }
         
@@ -69,50 +93,21 @@ public class Day5 : Day<int>
 
     private static string ListPages(int[] pages) => string.Join(", ", pages);
 
-    public override int SolvePartTwo()
-    {
-        var comparer = new PageComparer(this.pageOrder); 
-        
-        var sum = 0;
-        foreach (var line in updates)
-        {
-            var pages = line.Split(',').Select(int.Parse).ToArray();
-            if (!this.UpdateIsValid(pages))
-            {
-                VerifyUpdatePageCount(pages);
-                var ordered = pages.OrderBy(p => p, comparer).ToArray();
-                this.DebugOut($"{ListPages(pages)} => {ListPages(ordered)}");
-                    
-                var index = (ordered.Length + 1) / 2 - 1;
-                sum += ordered[index];
-            }
-        }
-        
-        return sum;
-    }
-
     private static void VerifyUpdatePageCount(int[] pages)
     {
         if (pages.Length % 2 != 1) throw new InvalidDataException(string.Join(", ", pages));
     }
 
-    private class PageComparer : IComparer<int>
+    private class PageComparer(List<(int, int)> pageOrder) : IComparer<int>
     {
-        private readonly List<(int, int)> pageOrder;
-
-        public PageComparer(List<(int, int)> pageOrder)
-        {
-            this.pageOrder = pageOrder;
-        }
-
         public int Compare(int x, int y)
         {
-            if (this.pageOrder.Any(o => o.Item1 == x && o.Item2 == y))
+            if (pageOrder.Any(o => o.Item1 == x && o.Item2 == y))
             {
                 return -1;
             }
             
-            if (this.pageOrder.Any(o => o.Item1 == y && o.Item2 == x))
+            if (pageOrder.Any(o => o.Item1 == y && o.Item2 == x))
             {
                 return 1;
             }

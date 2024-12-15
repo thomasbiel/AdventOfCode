@@ -4,20 +4,13 @@ using System.Linq;
 
 namespace AdventOfCode.Y2023;
 
-[Year(2023)]
-public class Day4 : Day<long>
+public class Day4 : Day
 {
-    private sealed class Card
+    private sealed class Card(int id, string[] winning, string[] picked)
     {
-        private readonly Lazy<int> count;
-        
-        public Card(int id, string[] winning, string[] picked)
-        {
-            this.Id = id;
-            this.count = new(() => picked.Intersect(winning).Count());
-        }
-        
-        public int Id { get; }
+        private readonly Lazy<int> count = new(() => picked.Intersect(winning).Count());
+
+        public int Id { get; } = id;
 
         public int Count => this.count.Value;
 
@@ -42,9 +35,10 @@ public class Day4 : Day<long>
         }
     }
     
-    public override long SolvePartOne()
+    [ExpectedResult(13L, 20667L)]
+    public override object SolvePartOne()
     {
-        var total = 0;
+        var total = 0L;
         foreach (var card in this.cards.Values)
         {
             total += card.Points;
@@ -53,7 +47,8 @@ public class Day4 : Day<long>
         return total;
     }
 
-    public override long SolvePartTwo() => this.cards.Count + this.GetCopyCount(this.cards.Values);
+    [ExpectedResult(30L, 5833065L)]
+    public override object SolvePartTwo() => Convert.ToInt64(this.cards.Count) +this. GetCopyCount(this.cards.Values);
 
     private long GetCopyCount(ICollection<Card> list)
     {

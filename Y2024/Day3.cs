@@ -3,16 +3,17 @@ using System.Text.RegularExpressions;
 
 namespace AdventOfCode.Y2024;
 
-[Year(2024)]
-public class Day3 : Day<int>
+public class Day3 : Day
 {
-    public override int SolvePartOne()
+    [ExpectedResult(161, 178538786)]
+    public override object SolvePartOne()
     {
         var memory = this.GetInput();
         return CalculateTotal(memory);
     }
 
-    public override int SolvePartTwo()
+    [ExpectedResult(48, 102467299)]
+    public override object SolvePartTwo()
     {
         var memory = this.GetInput();
 

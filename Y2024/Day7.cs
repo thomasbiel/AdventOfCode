@@ -6,8 +6,7 @@ using AdventOfCode.Utilities;
 
 namespace AdventOfCode.Y2024;
 
-[Year(2024)]
-public class Day7 : Day<ulong>
+public class Day7 : Day
 {
     private sealed record Operation(string Name, Func<ulong, ulong, ulong> Evaluate);
     
@@ -27,33 +26,15 @@ public class Day7 : Day<ulong>
                 value = op.Evaluate(value, next);
             }
             
-            return value == Result;
+            return value == this.Result;
         }
     }
 
-    private readonly IReadOnlyList<Equation> equations;
-    
-    public Day7()
-    {
-        static ulong Int(string value) => ulong.Parse(value);
+    [ExpectedResult(3749ul, 28730327770375ul)]
+    public override object SolvePartOne() => this.GetTotal([Add, Multiply]);
 
-        var options = StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries;
-        var list = new List<Equation>();
-        var lines = GetInputLines();
-        foreach (var line in lines)
-        {
-            var i = line.IndexOf(':');
-            var id = Int(line[..i]);
-            var values = line[(i + 1)..].Split(' ', options).Select(Int).ToArray();
-            list.Add(new(id, values));
-        }
-
-        equations = list;
-    }
-
-    public override ulong SolvePartOne() => GetTotal([Add, Multiply]);
-
-    public override ulong SolvePartTwo() => GetTotal([Add, Multiply, Concatenate]);
+    [ExpectedResult(11387ul, 424977609625985ul)]
+    public override object SolvePartTwo() => this.GetTotal([Add, Multiply, Concatenate]);
 
     protected override string GetTestInput(int? part = null)
     {
@@ -73,7 +54,7 @@ public class Day7 : Day<ulong>
     private ulong GetTotal(IReadOnlyList<Operation> operations)
     {
         ulong total = 0;
-        foreach (var equation in this.equations)
+        foreach (var equation in this.CreateEquations())
         {
             var combinations = GetCombinations(operations, equation.Values.Length - 1);
             foreach (var combination in combinations)
@@ -104,6 +85,24 @@ public class Day7 : Day<ulong>
         }
 
         return total;
+    }
+    
+    private List<Equation> CreateEquations()
+    {
+        static ulong Int(string value) => ulong.Parse(value);
+
+        var options = StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries;
+        var list = new List<Equation>();
+        var lines = this.GetInputLines();
+        foreach (var line in lines)
+        {
+            var i = line.IndexOf(':');
+            var id = Int(line[..i]);
+            var values = line[(i + 1)..].Split(' ', options).Select(Int).ToArray();
+            list.Add(new(id, values));
+        }
+
+        return list;
     }
 
     private static IEnumerable<T[]> GetCombinations<T>(IReadOnlyList<T> list, int length)

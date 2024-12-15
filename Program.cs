@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Linq;
+using System.Reflection;
 
 namespace AdventOfCode;
 
@@ -8,29 +8,52 @@ public static class Program
 {
     public static void Main()
     {
-        var days = typeof(Program).Assembly.GetTypes()
-            .Where(t => !t.IsAbstract && t.GetInterfaces().Contains(typeof(IDay)))
-            .Select(t => new DayOfYear(t, YearAttribute.GetYear(t), DayOfYear.GetNumber(t)))
-            .Where(d => ExecutionContext.YearIsSelected(d.Year) && ExecutionContext.DayIsSelected(d.Day))
-            .OrderBy(d => d.Year * 100 + d.Day);
-
-        foreach (var d in days)
+        foreach (var d in DayOfYear.GetDays())
         {
-            var (day, duration) = Measure(() => (IDay)Activator.CreateInstance(d.Type) ?? throw new InvalidProgramException());
-            Console.Write($"Year {d.Year} day {d.Day} (warmup took {duration})");
+            var (day, duration) = Measure(() => d.Create());
+            Console.Write($"Year {d.Year} day {d.DayOfMonth} (warmup took {duration})");
             Console.WriteLine();
-            var partOne = Measure(day.SolvePartOne);
-            Console.WriteLine($"Answer Part One: {partOne.Result} in {partOne.Duration}");
-            var partTwo = Measure(day.SolvePartTwo);
-            Console.WriteLine($"Answer Part Two: {partTwo.Result} in {partTwo.Duration}");
+            
+            var solvePartOne = Get(d.Type, nameof(day.SolvePartOne));
+            var partOne = Measure(() => day.SolvePartOne());
+            Console.WriteLine($"Answer Part One: {partOne.Result} in {partOne.Duration} {Verify(solvePartOne, partOne.Result)}");
+            
+            var solvePartTwo = Get(d.Type, nameof(day.SolvePartTwo));
+            var partTwo = Measure(() => day.SolvePartTwo());
+            Console.WriteLine($"Answer Part Two: {partTwo.Result} in {partTwo.Duration} {Verify(solvePartTwo, partTwo.Result)}");
             Console.WriteLine();
         }
     }
 
-    private static (T Result, TimeSpan Duration) Measure<T>(Func<T> solver)
+    private static (T Result, TimeSpan Duration) Measure<T>(Func<T> method)
     {
         var sw = Stopwatch.StartNew();
-        var result = solver();
+        var result = method();
         return (result, sw.Elapsed);
+    }
+    
+    private static string Verify(MethodInfo method, object result)
+    {
+        var expected = method!.GetCustomAttribute<ExpectedResultAttribute>();
+        if (expected != null)
+        {
+            var value = ExecutionContext.Mode == ExecutionMode.Default ? expected.Value : expected.Test;
+            if (value == null) return "(tbd)";
+                
+            if (!value.Equals(result))
+            {
+                Console.WriteLine($"Expected {value} but got {result}");
+                return "(error)";
+            }
+            
+            return "(verified)";
+        }
+        
+        return string.Empty;
+    }
+    
+    private static MethodInfo Get(Type type, string methodName)
+    {
+        return type.GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public);
     }
 }

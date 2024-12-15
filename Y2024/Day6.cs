@@ -6,23 +6,17 @@ using AdventOfCode.Utilities;
 
 namespace AdventOfCode.Y2024;
 
-[Year(2024)]
-public class Day6 : Day<int>
+public class Day6 : Day
 {
     private sealed record Lab(int MaxRowIndex, int MaxColumnIndex, IReadOnlySet<Point> Obstructions)
-    {
-        public bool Contains(Point p)
-        {
-            return p.Column >= 0 && p.Column <= this.MaxColumnIndex && p.Row >= 0 && p.Row <= this.MaxRowIndex;
-        }
-    }
+        : Area(MaxRowIndex, MaxColumnIndex);
     
     private sealed record GuardTurn(Point Position, Direction Direction);
     
     private class Guard
     {
-        private readonly HashSet<Point> positions = new();
-        private readonly HashSet<GuardTurn> turns = new();
+        private readonly HashSet<Point> positions = [];
+        private readonly HashSet<GuardTurn> turns = [];
         private readonly Lab lab;
         
         private Point position;
@@ -76,15 +70,14 @@ public class Day6 : Day<int>
 
     public Day6()
     {
-        var lines = this.GetInputLines();
-        
-        var rows = lines.Length;
-        var columns = lines[0].Length;
+        var columns = 0;
         var obstructions = new HashSet<Point>();
-        
-        for (var i = 0; i < lines.Length; i++)
+
+        var i = 0;
+        foreach (var row in this.GetInputLines())
         {
-            var row = lines[i];
+            if (i == 0) columns = row.Length;
+            
             for (var j = 0; j < row.Length; j++)
             {
                 var position = row[j];
@@ -97,12 +90,15 @@ public class Day6 : Day<int>
                     this.start = new Point(j, i);
                 }
             }
+
+            i++;
         }
         
-        this.lab = new Lab(rows - 1, columns - 1, obstructions);
+        this.lab = new Lab(i - 1, columns - 1, obstructions);
     }
     
-    public override int SolvePartOne()
+    [ExpectedResult(41, 5531)]
+    public override object SolvePartOne()
     {
         var guard = new Guard(this.lab, this.start);
         while (guard.TryMove() == true)
@@ -113,7 +109,8 @@ public class Day6 : Day<int>
         return guard.DistinctPositionsVisited;
     }
 
-    public override int SolvePartTwo()
+    [ExpectedResult(6, 2165)]
+    public override object SolvePartTwo()
     {
         var count = 0;
         var options = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount / 2 };

@@ -5,8 +5,7 @@ using AdventOfCode.Utilities;
 
 namespace AdventOfCode.Y2024;
 
-[Year(2024)]
-public class Day10 : Day<int>
+public class Day10 : Day
 {
     private class Map
     {
@@ -14,16 +13,18 @@ public class Day10 : Day<int>
         private const int Peak = 9;
         private readonly Dictionary<Point, int> map = new();
 
-        public Map(string[] lines)
+        public Map(IEnumerable<string> lines)
         {
-            for (var row = 0; row < lines.Length; row++)
+            var row = 0;
+            foreach (var line in lines)
             {
-                var line = lines[row];
                 for (var column = 0; column < line.Length; column++)
                 {
                     var c = line[column];
-                    map[new Point(column, row)] = c - '0';
+                    this.map[new Point(column, row)] = c - '0';
                 }
+
+                row++;
             }
         }
         
@@ -35,14 +36,12 @@ public class Day10 : Day<int>
 
             public override string ToString() => string.Join("  ", this);
         }
-        
-        public IEnumerable<Point> Trailheads => GetMapPoints(Trailhead);
 
         public IEnumerable<int> GetTrailheadScores()
         {
             foreach (var trailhead in this.Trailheads)
             {
-                yield return GetTrailheadScore(trailhead);
+                yield return this.GetTrailheadScore(trailhead);
             }
         }
         
@@ -50,19 +49,21 @@ public class Day10 : Day<int>
         {
             foreach (var start in this.Trailheads)
             {
-                yield return GetTrailheadRating(start);
+                yield return this.GetTrailheadRating(start);
             }
         }
+        
+        private IEnumerable<Point> Trailheads => this.GetMapPoints(Trailhead);
 
         private int GetTrailheadRating(Point trailhead)
         {
-            var trails = GetAllTrails(trailhead);
+            var trails = this.GetAllTrails(trailhead);
             return trails.Count;
         }
 
         private int GetTrailheadScore(Point trailhead)
         {
-            var trails = GetAllTrails(trailhead);
+            var trails = this.GetAllTrails(trailhead);
             // count distinct peaks
             return trails.DistinctBy(t => t[^1]).Count();
         }
@@ -72,13 +73,13 @@ public class Day10 : Day<int>
         {
             var trails = new List<Trail>();
             var currentTrail = new Trail { trailhead };
-            FindTrails(trailhead, currentTrail, trails);
+            this.FindTrails(trailhead, currentTrail, trails);
             return trails;
         }
 
         private void FindTrails(Point current, Trail currentTrail, List<Trail> trails)
         {
-            if (GetHeight(current) == Peak)
+            if (this.GetHeight(current) == Peak)
             {
                 trails.Add(new Trail(currentTrail));
                 return;
@@ -87,10 +88,10 @@ public class Day10 : Day<int>
             foreach (var direction in Enum.GetValues<Direction>())
             {
                 var next = current.GetNext(direction);
-                if (!IsOnMap(next) || !CanMove(next, GetHeight(current))) continue;
+                if (!this.IsOnMap(next) || !this.CanMove(next, this.GetHeight(current))) continue;
 
                 currentTrail.Add(next);
-                FindTrails(next, currentTrail, trails);
+                this.FindTrails(next, currentTrail, trails);
                 currentTrail.RemoveAt(currentTrail.Count - 1);
             }
         }
@@ -99,7 +100,7 @@ public class Day10 : Day<int>
 
         private bool IsOnMap(Point next) => this.map.ContainsKey(next);
         
-        private bool CanMove(Point target, int currentHeight) => GetHeight(target) == currentHeight + 1;
+        private bool CanMove(Point target, int currentHeight) => this.GetHeight(target) == currentHeight + 1;
 
         private IEnumerable<Point> GetMapPoints(int height)
         {
@@ -114,14 +115,16 @@ public class Day10 : Day<int>
         this.map = new Map(this.GetInputLines());
     }
     
-    public override int SolvePartOne()
+    [ExpectedResult(36, 517)]
+    public override object SolvePartOne()
     {
         var scores = this.map.GetTrailheadScores();
         this.DebugOut(string.Join(" ", scores));
         return scores.Sum();
     }
 
-    public override int SolvePartTwo()
+    [ExpectedResult(81, 1116)]
+    public override object SolvePartTwo()
     {
         var ratings = this.map.GetTrailheadRatings();
         this.DebugOut(string.Join(" ", ratings));

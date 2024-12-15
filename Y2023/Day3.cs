@@ -5,8 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace AdventOfCode.Y2023;
 
-[Year(2023)]
-public class Day3 : Day<int>
+public class Day3 : Day
 {
     private readonly string[] engineLayout;
     private readonly IReadOnlyList<Symbol> symbols;
@@ -15,11 +14,11 @@ public class Day3 : Day<int>
 
     public Day3()
     {
-        this.engineLayout = this.GetInputLines();
+        this.engineLayout = this.GetInputLines().ToArray();
         var list = new List<Symbol>();
         for (var i = 0; i < this.engineLayout.Length; i++)
         {
-            var line = engineLayout[i];
+            var line = this.engineLayout[i];
             var matches = Regex.Matches(line, @"[^.\d]");
             foreach (Match m in matches)
             {
@@ -30,7 +29,8 @@ public class Day3 : Day<int>
         this.symbols = list;
     }
     
-    public override int SolvePartOne()
+    [ExpectedResult(4361, 557705)]
+    public override object SolvePartOne()
     {
         var result = 0;
         for (var row = 0; row < this.engineLayout.Length; row++)
@@ -40,7 +40,7 @@ public class Day3 : Day<int>
             {
                 var r = row;
                 var potentialSymbols = this.symbols.Where(s => Math.Abs(s.Row - r) < 2);
-                if (potentialSymbols.Any(s => SymbolFitsToMatch(m, s)))
+                if (potentialSymbols.Any(s => this.SymbolFitsToMatch(m, s)))
                 {
                     result += int.Parse(m.Value);
                 }
@@ -54,7 +54,8 @@ public class Day3 : Day<int>
         return result;
     }
 
-    public override int SolvePartTwo()
+    [ExpectedResult(467835, 84266818)]
+    public override object SolvePartTwo()
     {
         var result = 0;
         
@@ -63,7 +64,7 @@ public class Day3 : Day<int>
         {
             var lines = this.engineLayout.Where((_, i) => i >= symbol.Row - 1 && i <= symbol.Row + 1); 
             var numbers = lines.SelectMany(l => Regex.Matches(l, "\\d+"))
-                .Where(m => SymbolFitsToMatch(m, symbol))
+                .Where(m => this.SymbolFitsToMatch(m, symbol))
                 .Select(m => int.Parse(m.Value))
                 .ToArray();
 
