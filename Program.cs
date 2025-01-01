@@ -28,8 +28,15 @@ public static class Program
     private static (T Result, TimeSpan Duration) Measure<T>(Func<T> method)
     {
         var sw = Stopwatch.StartNew();
-        var result = method();
-        return (result, sw.Elapsed);
+        try
+        {
+            var result = method();
+            return (result, sw.Elapsed);
+        }
+        catch (NotImplementedException)
+        {
+            return (default, sw.Elapsed);
+        }
     }
     
     private static string Verify(MethodInfo method, object result)

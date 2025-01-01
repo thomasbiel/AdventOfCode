@@ -99,8 +99,8 @@ public class Day10 : Day
     {
         var (pipeMap, start) = this.CreatePipeMap(2);
         var points = WalkThePipeLoop(pipeMap, start).ToList();
-        var area = CalculateAreaOfPolygonWithShoelaceFormula(points);
-        return CalculateNumberOfInnerPointsWithPicksTheorem(points, area);
+        var area = points.CalculateAreaOfPolygonWithShoelaceFormula();
+        return points.CalculateNumberOfInnerPointsWithPicksTheorem(area);
     }
 
     private (PipeMap pipeMap, Point start) CreatePipeMap(int part)
@@ -139,30 +139,6 @@ public class Day10 : Day
         var pipeMap = new PipeMap(pipes, maxRowIndex, maxColumnIndex);
         pipeMap.SetStartPipe(start);
         return (pipeMap, start);
-    }
-
-    // https://en.wikipedia.org/wiki/Pick%27s_theorem
-    private static int CalculateNumberOfInnerPointsWithPicksTheorem(List<Point> points, double area)
-    {
-        var b = points.Count;
-        var p = area - b / 2.0 + 1;
-        return (int) p;
-    }
-
-    // https://en.wikipedia.org/wiki/Shoelace_formula
-    private static double CalculateAreaOfPolygonWithShoelaceFormula(List<Point> points)
-    {
-        var n = points.Count;
-        
-        var area = 0.0;
-        for (var i = 0; i < n; i++)
-        {
-            var j = (i + 1) % n;
-            area += points[i].Column * points[j].Row 
-                  - points[j].Column * points[i].Row;
-        }
-
-        return Math.Abs(area) / 2.0;
     }
 
     private static HashSet<Point> WalkThePipeLoop(PipeMap pipeMap, Point start)
