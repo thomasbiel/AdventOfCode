@@ -28,4 +28,9 @@ public static class GeometryExtensions
 
         return Math.Abs(area) / 2.0;
     }
+
+    public static double GetDistance(this Point x, Point y)
+    {
+        return Math.Sqrt(Math.Pow(x.Column - y.Column, 2) + Math.Pow(x.Row - y.Row, 2));
+    }
 }

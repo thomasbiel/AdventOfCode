@@ -44,8 +44,7 @@ public class Day6 : Day
             }
             
             // turn right
-            var turn = (int)this.direction + 1;
-            this.direction = (Direction)(turn % 4);
+            this.direction = this.direction.TurnRight();
             if (!this.turns.Add(new(this.position, this.direction)))
             {
                 return null; // loop detected

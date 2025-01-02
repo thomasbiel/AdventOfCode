@@ -27,7 +27,7 @@ public class Day14 : Day
         return this.CalculateSafetyFactor(seconds: 100);
     }
 
-    [ExpectedResult(8168)]
+    [ExpectedResult(8168, 8168)]
     public override object SolvePartTwo()
     {
         this.floorSize = new Point(101, 103);
@@ -145,7 +145,7 @@ public class Day14 : Day
     private static double CalculateStandardDeviation(List<Point> positions)
     {
         var mean = CalculateMeanPosition(positions);
-        var diff = positions.Sum(p => Math.Pow(Distance(p, mean), 2));
+        var diff = positions.Sum(p => Math.Pow(p.GetDistance(mean), 2));
         return Math.Sqrt(diff / positions.Count);
     } 
     
@@ -154,11 +154,6 @@ public class Day14 : Day
         var meanColumn = positions.Sum(p => p.Column) / positions.Count;
         var meanRow = positions.Sum(p => p.Row) / positions.Count;
         return new Point(meanColumn, meanRow);
-    }
-    
-    private static double Distance(Point x, Point y)
-    {
-        return Math.Sqrt(Math.Pow(x.Column - y.Column, 2) + Math.Pow(x.Row - y.Row, 2));
     }
     
     private int CalculateSafetyFactor(int seconds)
