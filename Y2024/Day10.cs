@@ -85,7 +85,7 @@ public class Day10 : Day
                 return;
             }
 
-            foreach (var direction in Enum.GetValues<Direction>())
+            foreach (var direction in Point.Directions)
             {
                 var next = current.GetNext(direction);
                 if (!this.IsOnMap(next) || !this.CanMove(next, this.GetHeight(current))) continue;

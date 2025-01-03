@@ -143,7 +143,7 @@ public class Day10 : Day
 
     private static HashSet<Point> WalkThePipeLoop(PipeMap pipeMap, Point start)
     {
-        var directions = Enum.GetValues<Direction>();
+        var directions = Point.Directions;
         var current = start;
         var visited = new HashSet<Point>();
         while (visited.Add(current))

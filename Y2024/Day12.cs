@@ -9,6 +9,8 @@ public class Day12 : Day
 {
     private class Region : IEquatable<Region>
     {
+        private record Fence(List<Point> Points, Direction Direction);
+        
         private readonly HashSet<Point> points = new();
         
         public Region(char id)
@@ -18,34 +20,53 @@ public class Day12 : Day
         
         public char Id { get; }
 
-        public int Price
+        public int CalculatePrice()
         {
-            get
+            var fences = this.GetFences();
+            var perimeter = fences.Sum(f => f.Points.Count);
+            return this.Area * perimeter;
+        }
+        
+        public int CalculateDiscountPrice()
+        {
+            var fences = this.GetFences();
+            
+            Comparison<Point> compareRows = (p1, p2) => p1.Row == p2.Row ? p1.Column - p2.Column : p1.Row - p2.Row;
+            Comparison<Point> compareColumns = (p1, p2) => p1.Column == p2.Column ? p1.Row - p2.Row : p1.Column - p2.Column;
+
+            var sides = 0;
+
+            void CountVerticalSides(Point current, Point next)
             {
-                var minColumn = this.points.Min(p => p.Column);
-                var maxColumn = this.points.Max(p => p.Column);
-                var minRow = this.points.Min(p => p.Row);
-                var maxRow = this.points.Max(p => p.Row);
-
-                var perimeter = 0;
-                for (var row = minRow; row <= maxRow; row++)
-                {
-                    for (var column = minColumn; column <= maxColumn; column++)
-                    {
-                        var point = new Point(column, row);
-                        if (!this.Contains(point)) continue;
-
-                        var surroundingPoints = Enum.GetValues<Direction>()
-                            .Select(point.GetNext)
-                            .Where(p => !this.Contains(p));
-
-                        perimeter += surroundingPoints.Count();
-                    }
-                }
-
-                var area = this.points.Count;
-                return area * perimeter;
+                var isContinuationOfSide = current.Row == next.Row - 1 && current.Column == next.Column;
+                sides += isContinuationOfSide ? 0 : 1;
             }
+            
+            void CountHorizontalSides(Point current, Point next)
+            {
+                var isContinuationOfSide = current.Column == next.Column - 1 && current.Row == next.Row;
+                sides += isContinuationOfSide ? 0 : 1;
+            }
+            
+            foreach (var fence in fences)
+            {
+                fence.Points.Sort(fence.Direction is Direction.Up or Direction.Down ? compareRows : compareColumns);
+                
+                var count = fence.Points.Count;
+                for (var i = 0; i < count; i++)
+                {
+                    var current = fence.Points[i]; 
+                    var next = fence.Points[(i + 1) % count];
+                    
+                    Action<Point, Point> countSides = fence.Direction is Direction.Up or Direction.Down
+                        ? CountHorizontalSides
+                        : CountVerticalSides;
+                    
+                    countSides(current, next);
+                }
+            }
+
+            return this.Area * sides;
         }
 
         public bool Contains(Point point) => this.points.Contains(point);
@@ -64,6 +85,24 @@ public class Day12 : Day
         public override bool Equals(object obj) => obj is Region r && this.Equals(r);
 
         public override int GetHashCode() => this.Id.GetHashCode();
+
+        private IEnumerable<Point> GetAdjacentPoints(Point point)
+        {
+            return Point.Directions.Select(point.GetNext).Where(p => !this.Contains(p));
+        }
+
+        private int Area => this.points.Count;
+
+        private Fence GetFence(List<Point> borderPoints, Direction d)
+        {
+            return new Fence(borderPoints.Where(p => !this.Contains(p.GetNext(d))).ToList(), d);
+        }
+
+        private List<Fence> GetFences()
+        {
+            var borderPoints = this.points.Where(p => this.GetAdjacentPoints(p).Any()).ToList();
+            return Point.Directions.Select(d => this.GetFence(borderPoints, d)).ToList();
+        }
     }
     
     private class Garden
@@ -109,7 +148,7 @@ public class Day12 : Day
         
         private void AddSurroundingPoints(HashSet<Point> visited, Point point, Region region)
         {
-            var surroundingPoints = Enum.GetValues<Direction>()
+            var surroundingPoints = Point.Directions
                 .Select(point.GetNext)
                 .Where(p => this.Contains(p) && this[p.Row, p.Column] == region.Id)
                 .Where(visited.Add);
@@ -120,23 +159,23 @@ public class Day12 : Day
                 this.AddSurroundingPoints(visited, p, region);
             }
         }
-        
-        public bool Contains(Point point) => point.Row >= 0 && point.Column >= 0 && 
-                                             point.Row <= this.MaxRow && point.Column <= this.MaxColumn;
+
+        private bool Contains(Point point) => point.Row >= 0 && point.Column >= 0 && 
+                                              point.Row <= this.MaxRow && point.Column <= this.MaxColumn;
+    }
+
+    private readonly Garden garden;
+
+    public Day12()
+    {
+        this.garden = new Garden(this.GetInputLines().ToArray());
     }
     
     [ExpectedResult(1930, 1421958)]
-    public override object SolvePartOne()
-    {
-        var garden = new Garden(this.GetInputLines().ToArray());
-        return garden.Regions.Sum(r => r.Price);
-    }
+    public override object SolvePartOne() => this.garden.Regions.Sum(r => r.CalculatePrice());
 
-    [ExpectedResult(1206)]
-    public override object SolvePartTwo()
-    {
-        return 0;
-    }
+    [ExpectedResult(1206, 885394)]
+    public override object SolvePartTwo() => this.garden.Regions.Sum(r => r.CalculateDiscountPrice());
 
     protected override string GetTestInput(int? part = null)
     {

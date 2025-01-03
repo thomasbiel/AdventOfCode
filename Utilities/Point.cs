@@ -16,5 +16,7 @@ public sealed record Point(int Column, int Row)
         };
     }
 
+    public static Direction[] Directions => Enum.GetValues<Direction>();
+    
     public override string ToString() => $"{this.Column},{this.Row}";
 }

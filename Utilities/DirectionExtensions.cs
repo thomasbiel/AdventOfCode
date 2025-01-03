@@ -8,5 +8,11 @@ public static class DirectionExtensions
         return (Direction)(turn % 4);
     }
     
+    public static Direction TurnLeft(this Direction direction)
+    {
+        var turn = (int)direction + 3;
+        return (Direction)(turn % 4);
+    }
+    
     public static Direction Reverse(this Direction direction) => (Direction)(((int)direction + 2) % 4);
 }
